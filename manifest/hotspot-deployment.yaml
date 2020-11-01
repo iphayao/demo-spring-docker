@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-spring-hotspot-deployment
+spec:
+  selector:
+    matchLabels:
+      app: demo-spring-hotspot
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: demo-spring-hotspot
+    spec:
+      containers:
+        - name: demo-spring-hotspot
+          image: phayao/demo-spring-hotspot:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "200m"
+            limits:
+              memory: "256Mi"
+              cpu: "400m"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-spring-hotspot
+spec:
+  selector:
+    app: demo-spring-hotspot
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
